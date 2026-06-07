@@ -1,0 +1,383 @@
+《企业级应用开发综合实践》
+高校学科竞赛报名管理系统
+数据库设计说明书
+一、引言
+1.1 编写目的
+本文档是"高校学科竞赛报名管理系统"的数据库设计说明书，旨在：
+1. 明确数据需求 ：基于需求规格说明书，系统分析业务功能对数据存储、	管理和查询的要求，识别核心数据实体及其属性。
+2. 规范开发流程 ：明确数据库设计的步骤、范式要求和完整性约束，确保	数据库结构合理、数据一致性良好，满足系统功能需求。
+3. 提供团队协作依据 ：为开发团队提供统一的数据字典和实体关系说明，	便于前后端开发人员理解数据结构，协调开发工作。
+4. 支持系统维护 ：作为系统后期维护、扩展和优化的参考文档，帮助维护	人员快速理解数据库结构和设计思路。
+1.2 适用范围
+本文档适用于以下人员和场景：
+数据库开发人员 ：根据本文档进行ER图绘制、关系模式设计和建表实现
+后端开发人员 ：根据数据实体和属性定义编写业务逻辑和数据访问层代码	前端开发人员 ：根据数据字段定义设计数据展示和交互界面
+测试人员 ：根据数据约束和业务规则设计测试用例
+项目管理人员 ：了解数据库设计进度和关键设计决策
+1.3 参考文档
+《高校学科竞赛报名管理系统需求规格说明书》
+《企业级应用开发综合实践》课程设计任务书
+MySQL 8.0 官方文档
+数据库系统概论（第五版）	
+概念设计
+2.1 实体识别
+2.2 实体
+2.2.1用户实体-部分ER图
+用户实体图2-2-1
+2.2.2竞赛实体-部分ER图
+竞赛实体图2-2-2
+2.2.3报名实体-部分ER图
+报名实体图2-2-3
+2.2.4团队实体-部分ER图
+团队实体图2-2-4
+2.2.5团队成员实体-部分ER图
+团队成员实体图2-2-5
+2.2.6教师指导实体-部分ER图
+教师指导实体图2-2-6
+2.3 全局ER图
+全局ER图2-4
+三、逻辑设计
+3.1 关系模式设计
+3.1.1 用户表（user）
+关系模式 ：
+user (
+user_id BIGINT,
+student_no VARCHAR(50),
+email VARCHAR(100),
+password VARCHAR(255),
+name VARCHAR(50),
+college VARCHAR(100),
+phone VARCHAR(20),
+avatar VARCHAR(255),
+role ENUM('student','teacher','admin'),
+status ENUM('normal','locked'),
+lock_until DATETIME,
+login_fail_count INT,
+create_time DATETIME,
+update_time DATETIME,
+PRIMARY KEY (user_id),
+UNIQUE (student_no),
+UNIQUE (email)
+)
+主键 ：user_id
+外键 ：无
+3.1.2 竞赛表（contest）
+关系模式 ：
+contest (contest_id, 
+name, 
+category, 
+level, 
+registration_start, 
+registration_end, 
+contest_time, location, 
+organizer, cover_image, 
+attachment_url, 
+registration_type, 
+min_team_size, 
+max_team_size, 
+need_review, 
+status, 
+create_by, 
+create_time, 
+update_time, 
+is_deleted
+)
+主键 ：contest_id
+外键 ：无
+3.1.3 报名表（enrollment）
+关系模式 ：
+enrollment(
+enrollment_id, 
+user_id, 
+contest_id, s
+tatus, 
+review_comment, 
+registration_time, 
+review_time, 
+reviewer_id, 
+attachment_url
+)
+主键 ：enrollment_id
+外键 ：- contest_id → contest(contest_id)
+user_id → user(user_id)
+team_id → team(team_id)（可空，个人赛时为空）
+reviewer_id → user(user_id)（可空，未审核时为空）
+3.1.4 团队表（team）
+关系模式 ：
+team (
+team_id BIGINT,
+contest_id BIGINT,
+captain_id BIGINT,
+team_name VARCHAR(100),
+invite_code VARCHAR(6),
+create_time DATETIME,
+status ENUM('pending','reviewing','approved','rejected'),
+registration_material VARCHAR(255),
+review_comment VARCHAR(500),
+submit_time DATETIME,
+review_time DATETIME,
+reviewer_id BIGINT,
+PRIMARY KEY (team_id),
+FOREIGN KEY (contest_id) REFERENCES contest(contest_id),
+FOREIGN KEY (captain_id) REFERENCES user(user_id),
+FOREIGN KEY (reviewer_id) REFERENCES user(user_id),
+UNIQUE (invite_code)
+)
+主键 ：team_id
+外键 ：
+contest_id → contest(contest_id)
+captain_id → user(user_id)
+3.1.5 团队成员表（team_member）
+关系模式 ：
+team_member( 
+id, 
+team_id, 
+user_id, 
+status, 
+apply_time, 
+review_time
+ )
+主键 ：member_id
+外键 ：
+team_id → team(team_id)
+user_id → user(user_id)
+3.1.6 教师指导表（teacher_contest）
+关系模式 ：
+eacher_contest (
+id, 
+teacher_id, 
+contest_id, 
+create_time
+)
+主键 ：id
+外键 ：
+teacher_id → user(user_id)
+contest_id → contest(contest_id)
+3.2 范式分析
+3.2.1 第一范式（1NF）
+3.2.2 第二范式（2NF）
+3.2.3 第三范式（3NF）
+3.3 数据字典
+3.3.1用户表（user）
+3.3.2竞赛表（contest）
+3.3.3报名表（enrollment）
+3.3.4团队表（team）
+3.3.5团队成员表（team_member）
+3.3.6教师指导表（teacher_contest）
+3.4用户-角色-权限详细列表
+3.4.1游客（Guest）未登录用户
+3.4.2学生（Student）角色标识：'student'
+3.4.3教师（Teacher）角色标识：'teacher'
+3.4.4管理员（Admin）- 角色标识：'admin'
+3.4.5角色权限对比汇总
+附表1. 小组分工
+
+[表格]
+
+组长姓名： | 朱郎郎
+组长学号： | 2301130119
+组  员： | 王熠城、何佳炜、林星闪、周隆吉
+ | 2301130103、2301130079、2301130091、2301130117
+班  级： | 软件工程2班
+日  期： | 2026年5月31日
+
+[表格]
+
+实体名称 | 英文标识 | 说明
+用户 | User | 系统的使用者，包括学生、教师、管理员
+竞赛 | Contest | 学科竞赛的基本信息
+报名 | Enrollment | 学生报名参赛的记录
+团队 | Team | 参加团队赛的队伍
+团队成员 | TeamMember | 团队成员与团队的关联关系
+教师 | TeacherContest | 教师与竞赛的指导关系
+
+[表格]
+
+表名 | 是否符合1NF | 说明
+user | 是 | 所有字段都是单值，无重复组
+contest | 是 | 所有字段都是单值，无数组或嵌套结构
+enrollment | 是 | 所有字段都是单值
+team | 是 | 所有字段都是单值
+team_member | 是 | 所有字段都是单值
+teach_contest | 是 | 所有字段都是单值
+
+[表格]
+
+表名 | 主键类型 | 是否符合2NF | 说明
+user | 单列主键 | 是 | 单列主键不存在部分依赖
+contest | 单列主键 | 是 | 单列主键不存在部分依赖
+enrollment | 单列主键 | 是 | enrollment_id是单列主键，所有非主属性完全依赖于它
+team | 单列主键 | 是 | team_id是单列主键，所有非主属性完全依赖于它
+team_member | 单列主键 | 是 | member_id是单列主键，所有非主属性完全依赖于它
+team_contest | 单列主键 | 是 | id是单列主键，teacher_id和contest_id完全依赖于它
+
+[表格]
+
+表名 | 函数依赖分析 | 是否存在传递依赖 | 是否符合 3NF
+user | user_id→username,email, password,role,college, phone, ... | 否 | 是
+contest | contest_id→name, category,registration_start, registration_end, ... | 否 | 是
+enrollment | enrollment_id→contest_id,user_id, team_id, type, status, ... | 否 | 是
+team | team_id→contest_id,captain_id,
+team_name,invite_code, 否status, ... | 否 | 是
+team_member | member_id→team_id,user_id,role, join_status, join_time | 否 | 是
+teacher_contest | id→teacher_id,contest_id | 否 | 是
+
+[表格]
+
+字段名 | 数据类型 | 长度 | 约束 | 默认值 | 说明
+用户编号 | BIGINT |  | PK, Auto Increment |  | 用户唯一标识（主键）
+学号 | VARCHAR | 50 | UNIQUE, NOT NULL |  | 学号 / 工号（唯一）
+邮箱 | VARCHAR | 100 | UNIQUE, NOT NULL |  | 邮箱（唯一）
+密码 | VARCHAR | 255 | NOT NULL |  | 密码（BCrypt 加密存储）
+姓名 | VARCHAR | 50 | NOT NULL |  | 姓名
+学院 | VARCHAR | 100 |  |  | 学院
+电话 | VARCHAR | 20 |  |  | 手机号
+头像 | VARCHAR | 255 |  |  | 头像 URL
+角色 | ENUM |  | NOT NULL | 'student' | 角色: student/teacher/admin
+状态 | ENUM |  |  | 'normal' | 状态: normal/locked
+锁定戒指时间 | DATETIME | - | - | - | 锁定截止时间
+登录失败次数 | INT |  |  | 0 | 登录失败次数
+创建时间 | DATETIME | - | - | CURRENT_TIMESTAMP | 创建时间
+更新时间 | DATETIME |  |  | CURRENT_TIMESTAMP | 更新时间（自动更新）
+
+[表格]
+
+报名开始时间 | DATETIME | - | NOT NULL | - | 报名开始时间
+报名结束时间 | DATETIME | - | NOT NULL | - | 报名结束时间
+竞赛时间 | DATETIME | - | NOT NULL | - | 竞赛举办时间
+竞赛地点 | VARCHAR | 100 | NULL | - | 竞赛地点
+主办方 | VARCHAR | 100 | NULL | - | 主办方
+封面图地址 | VARCHAR | 255 | NULL | - | 封面图 URL
+附件地址 | VARCHAR | 255 | NULL | - | 附件 URL
+报名类型 | ENUM | - | NOT NULL | both | 报名类型
+最小团队人数 | INT | - | NULL | 2 | 最小团队人数
+最大团队人数 | INT | - | NULL | 10 | 最大团队人数
+是否需要审核 | TINYINT | 1 | NOT NULL | 1 | 是否需要审核（1 是 / 0 否）
+竞赛状态 | ENUM | - | NOT NULL | not_started | 竞赛状态
+创建人编号 | BIGINT | - | FK、NOT NULL | - | 创建人 ID（外键→user）
+创建时间 | DATETIME | - | NOT NULL | CURRENT_TIMESTAMP | 创建时间
+更新时间 | DATETIME | - | NOT NULL | CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP | 更新时间
+是否删除 | TINYINT | 1 | NOT NULL | 0 | 逻辑删除（1 删 / 0 正常）
+
+[表格]
+
+报名记录 ID | BIGINT | - | PK, Auto Increment | - | 报名记录 ID（主键）
+用户 ID | BIGINT | - | FK → user(user_id), NOT NULL | - | 报名用户 ID
+竞赛 ID | BIGINT | - | FK → contest(contest_id), NOT NULL | - | 竞赛 ID
+报名状态 | ENUM | - | - | 'pending' | 状态：pending/approved/rejected/cancelled
+审核意见 | VARCHAR | 500 | - | - | 审核意见
+报名时间 | DATETIME | - | - | CURRENT_TIMESTAMP | 报名时间
+审核时间 | DATETIME | - | - | - | 审核时间
+审核人 ID | BIGINT | - | FK → user(user_id) | - | 审核人 ID（老师 / 管理员）
+附件地址 | VARCHAR | 255 | - | - | 附件 URL（报名材料）
+
+[表格]
+
+字段名 | 数据类型 | 长度 | 约束 | 默认值 | 说明
+团队 ID | BIGINT |  | PK, Auto Increment |  | 团队 ID（主键）
+所属竞赛 ID | BIGINT | - | FK→contest(contest_id), NOT NULL | - | 所属竞赛 ID
+队长 ID | BIGINT |  | FK→user(user_id), NOT NULL |  | 队长 ID
+团队名称 | VARCHAR | 100 | NOT NULL | - | 团队名称
+邀请码 | VARCHAR | 6 | UNIQUE, NOT NULL |  | 邀请码（6 位唯一）
+创建时间 | DATETIME | - | - | CURRENT_TIMESTAMP | 创建时间
+团队报名状态 | ENUM |  |  | 'pending' | 团队报名状态
+报名材料地址 | VARCHAR | 255 | - | - | 报名材料 URL（zip/pdf）
+审核意见 | VARCHAR | 500 |  |  | 审核意见
+提交报名时间 | DATETIME | - | - | - | 提交报名时间
+审核时间 | DATETIME |  |  |  | 审核时间
+审核人 ID | BIGINT | - | FK→user(user_id) | - | 审核人 ID
+
+[表格]
+
+id | BIGINT | - | PK, Auto Increment | - | 记录 ID (主键)
+team_id | BIGINT | - | FK→team(team_id), NOT NULL | - | 团队 ID
+user_id | BIGINT | - | FK→user(user_id), NOT NULL | - | 用户 ID
+status | ENUM | - | NOT NULL | 'applying' | 成员状态
+apply_time | DATETIME | - | NOT NULL | CURRENT_TIMESTAMP | 申请加入时间
+review_time | DATETIME | - | - | - | 审核时间
+
+[表格]
+
+记录编号 | BIGINT | - | PK、NOT NULL、AUTO_INCREMENT | - | 记录 ID（主键）
+老师编号 | BIGINT | - | FK、NOT NULL | - | 老师 ID（外键→user）
+竞赛编号 | BIGINT | - | FK、NOT NULL | - | 竞赛 ID（外键→contest）
+创建时间 | DATETIME | - | NOT NULL | CURRENT_TIMESTAMP | 关联时间
+
+[表格]
+
+功能模块 | 权限 | 说明 | 数据库关联
+浏览竞赛列表 | 可读 | 查看所有已上架的竞赛 | contest表（status='published'）
+查看竞赛详情 | 可读 | 查看竞赛详细信息 | contest表
+搜索筛选竞赛 | 可读 | 按条件搜索竞赛 | contest表
+注册账号 | 可写 | 注册成为学生用户 | user表（INSERT）
+
+[表格]
+
+功能模块 | 权限 | 说明 | 数据库关联
+登录系统 | 操作 | 使用学号/邮箱登录 | user表（验证password）
+浏览竞赛列表 | 可读 | 查看所有已上架的竞赛 | contest表
+查看竞赛详情 | 可读 | 查看竞赛详细信息 | contest表
+搜索筛选竞赛 | 可读 | 按条件搜索竞赛 | contest表
+个人赛报名 | 可写 | 报名个人竞赛 | enrollment表（INSERT）
+查看个人报名记录 | 可读 | 查看自己的报名 | enrollment表（WHERE user_id=当前用户）
+创建团队 | 可写 | 创建参赛团队 | team表（INSERT，captain_id=当前用户）
+加入团队 | 可写 | 申请加入团队 | team_member表（INSERT）
+管理团队成员 | 可写 | 仅限队长，审核成员加入 | team_member表（UPDATE status）
+提交团队报名 | 可写 | 仅限队长，提交团队报名 | team表（UPDATE status）
+查看个人报名状态 | 可读 | 查看报名审核状态 | enrollment表
+查看团队信息 | 可读 | 查看所在团队信息 | team表、team_member表
+
+[表格]
+
+功能模块 | 权限 | 说明 | 数据库关联
+登录系统 | 操作 | 使用邮箱登录 | user表（验证password）
+浏览竞赛列表 | 可读 | 查看所有竞赛 | contest表
+查看竞赛详情 | 可读 | 查看竞赛详细信息 | contest表
+搜索筛选竞赛 | 可读 | 按条件搜索竞赛 | contest表
+查看指导竞赛 | 可读 | 查看自己指导的竞赛 | teacher_contest表（WHERE teacher_id=当前用户）
+查看指导竞赛报名 | 可读 | 查看指导竞赛的报名记录 | enrollment表（通过teacher_contest关联）
+审核报名（指导竞赛） | 可写 | 审核自己指导竞赛的报名 | enrollment表（UPDATE reviewer_id, status, review_comment）
+审核团队（指导竞赛） | 可写 | 审核自己指导竞赛的团队 | team表（UPDATE reviewer_id, status, review_comment）
+查看报名统计 | 可读 | 查看指导竞赛的报名统计 | enrollment表、team表（通过teacher_contest关联）
+
+[表格]
+
+功能模块 | 权限 | 说明 | 数据库关联
+登录系统 | 操作 | 使用邮箱登录 | user表（验证password）
+浏览竞赛列表 | 可读 | 查看所有竞赛（含未上架） | contest表
+查看竞赛详情 | 可读 | 查看竞赛详细信息 | contest表
+搜索筛选竞赛 | 可读 | 按条件搜索竞赛 | contest表
+发布竞赛 | 可写 | 创建新竞赛 | contest表（INSERT，create_by=当前用户）
+编辑竞赛 | 可写 | 修改竞赛信息 | contest表（UPDATE）
+上下架竞赛 | 可写 | 控制竞赛可见性 | contest表（UPDATE status）
+审核所有报名 | 可写 | 审核任意竞赛的报名 | enrollment表（UPDATE）
+审核所有团队 | 可写 | 审核任意竞赛的团队 | team表（UPDATE）
+查看所有报名记录 | 可读 | 查看系统所有报名 | enrollment表
+查看报名统计 | 可读 | 查看全局报名统计 | enrollment表、team表、contest表
+管理轮播图 | 可写 | 管理系统首页轮播图 | carousel表（需新增）
+管理用户 | 可写 | 锁定/解锁用户 | user表（UPDATE status, lock_until）
+导入教师账号 | 可写 | 批量导入教师信息 | user表（BULK INSERT，role='teacher'）
+
+[表格]
+
+权限项 | 游客 | 学生 | 教师 | 管理员
+查看公开竞赛 | ✓ | ✓ | ✓ | ✓
+查看未上架竞赛 | ✗ | ✗ | ✗ | ✓
+个人报名 | ✗ | ✓ | ✗ | ✗
+团队操作 | ✗ | ✓ | ✗ | ✗
+审核（指导竞赛） | ✗ | ✗ | ✓ | ✗
+审核（所有竞赛） | ✗ | ✗ | ✗ | ✓
+发布/编辑竞赛 | ✗ | ✗ | ✗ | ✓
+上下架竞赛 | ✗ | ✗ | ✗ | ✓
+全局数据统计 | ✗ | ✗ | ✗ | ✓
+用户管理 | ✗ | ✗ | ✗ | ✓
+系统配置 | ✗ | ✗ | ✗ | ✓
+
+[表格]
+
+姓名 | 学号 | 工作内容 | 贡献比例 | 签字
+朱郎郎 | 2301130119 | 统筹规划、文档编辑 | 20% | 
+王熠城 | 2301130103 | 全局ER图绘制、数据字典 | 20% | 
+何佳炜 | 2301130079 | 部分ER图绘制、范式 | 20% | 
+林星闪 | 2301130091 | 部分ER图绘制、权限表 | 20% | 
+周隆吉 | 2301130117 | 部分ER图绘制、协助 | 20% | 
