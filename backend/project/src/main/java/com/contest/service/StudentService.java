@@ -247,11 +247,12 @@ public class StudentService {
             throw new BusinessException("团队已提交报名，请勿重复提交");
         }
 
-        int approvedMemberCount = (int) teamMemberMapper.selectCount(
+        Long count = teamMemberMapper.selectCount(
                 new LambdaQueryWrapper<TeamMember>()
                         .eq(TeamMember::getTeamId, teamId)
                         .eq(TeamMember::getStatus, "approved")
         );
+        int approvedMemberCount = count != null ? count.intValue() : 0;
         if (contest.getMinTeamSize() != null && approvedMemberCount < contest.getMinTeamSize()) {
             throw new BusinessException("团队人数未达到最小要求");
         }

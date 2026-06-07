@@ -1,0 +1,1 @@
+import{r as e}from"./request-40e87f13.js";const o=t=>e({url:"/student/enrollments/personal",method:"post",data:t}),n=()=>e({url:"/student/enrollments",method:"get"}),r=t=>e({url:"/student/teams",method:"post",data:t}),l=t=>e({url:"/student/teams/join",method:"post",data:t});export{r as c,n as g,l as j,o as p};

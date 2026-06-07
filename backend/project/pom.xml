@@ -8,7 +8,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.7.14</version>
+        <version>3.1.5</version>
         <relativePath/>
     </parent>
 
@@ -19,7 +19,7 @@
     <description>高校学科竞赛报名管理系统</description>
 
     <properties>
-        <java.version>11</java.version>
+        <java.version>17</java.version>
         <mybatis-plus.version>3.5.3.1</mybatis-plus.version>
         <jwt.version>0.11.5</jwt.version>
     </properties>
